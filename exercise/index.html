@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8"/>
+<title>Firebase</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.13.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyBrslPN2uRHVG-c4wvfCXQpLzIQ6zQvqps",
+    authDomain: "frontend-playground-da2c7.firebaseapp.com",
+    databaseURL: "https://frontend-playground-da2c7.firebaseio.com",
+    projectId: "frontend-playground-da2c7",
+    storageBucket: "frontend-playground-da2c7.appspot.com",
+    messagingSenderId: "6609819026"
+  };
+  firebase.initializeApp(config);
+</script>
+</head>
+<body>
+<div id="app">
+	<h1>Firebase</h1>
+	<div style="width:500px;margin: 0 auto; height: 500px;border: 3px solid black;position: relative;">
+		<div v-if="user.position" :style="{position:'absolute', top: user.position.y +'px', left: user.position.x +'px'}">
+			<span v-if="false" style="color:green;">☻</span>
+			<span v-if="user.connections" style="background: rgb(66, 183, 42); border-radius: 50%; display: inline-block; height: 10px; margin-left: 4px; width: 10px;"></span>
+			<span :title="user.connections?'online':'last online: '+new Date(user.lastOnline)" :style="{color:(user.connections?'':'grey'), 'font-weight': user.connections?'600':''}">{{name}}</span>
+		</div>
+	</div>
+</div>
+<script>
+new Vue({
+	el:"#app",
+	data:{
+		name: "",
+		user: {}
+	},
+	created(){
+		this.syncConnectionStatus();
+		this.syncUser();
+	},
+	methods:{
+		syncConnectionStatus(){
+			
+		},
+		syncUser(){
+			
+		},
+		move(e){
+			
+		}
+	}
+})
+</script>
+</body>
+</html>

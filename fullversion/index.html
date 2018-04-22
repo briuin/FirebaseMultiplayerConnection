@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8"/>
+<title>Firebase</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.13.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyBrslPN2uRHVG-c4wvfCXQpLzIQ6zQvqps",
+    authDomain: "frontend-playground-da2c7.firebaseapp.com",
+    databaseURL: "https://frontend-playground-da2c7.firebaseio.com",
+    projectId: "frontend-playground-da2c7",
+    storageBucket: "frontend-playground-da2c7.appspot.com",
+    messagingSenderId: "6609819026"
+  };
+  firebase.initializeApp(config);
+</script>
+</head>
+<body>
+<div id="app">
+	<h1>Firebase</h1>
+	<div style="width:500px;margin: 0 auto; height: 500px;border: 3px solid black;position: relative;">
+		<div v-if="user.position" :style="{position:'absolute', top: user.position.y +'px', left: user.position.x +'px'}">
+			<span v-if="false" style="color:green;">☻</span>
+			<span v-if="user.connections" style="background: rgb(66, 183, 42); border-radius: 50%; display: inline-block; height: 10px; margin-left: 4px; width: 10px;"></span>
+			<span :title="user.connections?'online':'last online: '+new Date(user.lastOnline)" :style="{color:(user.connections?'':'grey'), 'font-weight': user.connections?'600':''}">{{name}}</span>
+		</div>
+	</div>
+</div>
+<script>
+new Vue({
+	el:"#app",
+	data:{
+		name: "GM",
+		user: {}
+	},
+	created(){
+		this.syncConnectionStatus();
+		this.syncUser();
+	},
+	mounted(){
+		window.addEventListener('keydown', this.move);
+	},
+	methods:{
+		syncConnectionStatus(){
+			// since I can connect from multiple devices or browser tabs, we store each connection instance separately
+			// any time that connectionsRef's value is null (i.e. has no children) I am offline
+			var myConnectionsRef = firebase.database().ref(`users/${this.name}/connections`);
+
+			// stores the timestamp of my last disconnect (the last time I was seen online)
+			var lastOnlineRef = firebase.database().ref(`users/${this.name}/lastOnline`);
+
+			var connectedRef = firebase.database().ref('.info/connected');
+			connectedRef.on('value', function(snap) {
+			  if (snap.val() === true) {
+				// We're connected (or reconnected)! Do anything here that should happen only if online (or on reconnect)
+				var con = myConnectionsRef.push();
+
+				// When I disconnect, remove this device
+				con.onDisconnect().remove();
+
+				// Add this device to my connections list
+				// this value could contain info about the device or a timestamp too
+				con.set(true);
+
+				// When I disconnect, update the last time I was seen online
+				lastOnlineRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+			  }
+			});
+		},
+		syncUser(){
+			const userRef = firebase.database().ref(`users/${this.name}`);
+
+			userRef.on('value', (snap) =>{
+				let user =  snap.val();			
+				if(!(user.position)){
+					user.position = {x:0,y:0};
+				}
+				this.user = user;
+			});
+		},
+		move(e){
+			const keyCode = String(e.keyCode || e.code || e.keyIdentifier);
+			const step = 3;
+			if (keyCode === '37' && this.user.position.x >= step) { 
+				// left
+				this.user.position.x -=step;
+			}
+      		if (keyCode === '38' && this.user.position.y >= step) { 
+				// up
+				this.user.position.y -=step;
+			}
+			if (keyCode === '39' && this.user.position.x <= 500 -step) { 
+				// right	
+				this.user.position.x +=step;
+			}
+			if (keyCode === '40' && this.user.position.y <= 500 -step) { 
+				//down
+				this.user.position.y +=step;
+			}
+			
+			firebase.database().ref(`users/${this.name}/position`).set({x: this.user.position.x, y: this.user.position.y});
+		}
+	}
+})
+</script>
+</body>
+</html>
